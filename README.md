@@ -1,20 +1,18 @@
-# cozmo driver for ROS
+# vector driver for ROS
 
-This is **unofficial** ROS node for Anki cozmo.
+ROS node for Anki Vector.
 
 ## Requirements
 
-This is tested on Kinetic/Ubuntu16.04 and Android only. Latest version is tested on Indigo/Ubuntu14.04.
-
- * Ubuntu 14.04/16.04
- * ROS Indigo/Kinetic
+ * Ubuntu 18.04
+ * ROS Melodic
  * Python3.5
  * (Android)
- * (Cozmo SDK 0.10+)
+ * (Vector SDK 0.5.1)
 
 Use rosdep to install the required ROS packages:
 ```sh
-rosdep install cozmo_driver
+rosdep install vector_driver
 ```
 
 ### Note
