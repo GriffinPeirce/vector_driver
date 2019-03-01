@@ -432,12 +432,11 @@ class VectorRos(object):
         # compute current linear and angular velocity from pose change
         # Note: Sign for linear velocity is taken from commanded velocities!
         # Note: The angular velocity can also be taken from gyroscopes!
-        delta_pose = self._last_pose - self._vector.pose
-        dist = np.sqrt(delta_pose.position.x**2
-                       + delta_pose.position.y**2
-                       + delta_pose.position.z**2) / 1000.0
+        dist = np.sqrt((self._last_pose.position.x - self._vector.pose.position.x)**2
+                       + (self._last_pose.position.y - self._vector.pose.position.y)**2
+                       + (self._last_pose.position.z - self._vector.pose.position.z)**2) / 1000.0
         self._lin_vel = dist * update_rate * np.sign(self._cmd_lin_vel)
-        self._ang_vel = -delta_pose.rotation.angle_z.radians * update_rate
+        self._ang_vel = -(self._last_pose.rotation.angle_z.radians - self._vector.pose.rotation.angle_z.radians)* update_rate
 
         # publish odom_frame -> footprint_frame
         q = quaternion_from_euler(.0, .0, self._vector.pose_angle_rad)
