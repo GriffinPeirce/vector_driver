@@ -43,8 +43,8 @@ from select import select
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Float64
 
-MIN_HEAD_ANGLE = -20.0
-MAX_HEAD_ANGLE = 46.0
+MIN_HEAD_ANGLE = -22.0
+MAX_HEAD_ANGLE = 45.0
 STD_HEAD_ANGLE = 20.0
 SUM_HEAD_ANGLE = MAX_HEAD_ANGLE - MIN_HEAD_ANGLE
 

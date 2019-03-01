@@ -2,9 +2,9 @@
 # -*- encoding: utf-8 -*-
 """
 This script implements a ROS node, which is used to
-control cozmo's head angle and lift height via joy-pad.
+control vectors's head angle and lift height via joy-pad.
 
-Copyright {2017} {Peter Rudolph}
+Copyright {2019} {Griffin Peirce}
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import rospy
 from sensor_msgs.msg import Joy
 from std_msgs.msg import Float64
 
-MIN_HEAD_ANGLE = -25.0
-MAX_HEAD_ANGLE = 44.5
+MIN_HEAD_ANGLE = -22.0
+MAX_HEAD_ANGLE = 45.0
 SUM_HEAD_ANGLE = MAX_HEAD_ANGLE - MIN_HEAD_ANGLE
 
 MIN_LIFT_HEIGHT = 32.0
@@ -41,7 +41,7 @@ class HeadLiftJoy(object):
     button is pressed and sends the transformed value
     to corresponding "head_angle/lift_height" topic.
 
-    The min/max parameters are taken from cozmo SDK.
+    The min/max parameters are taken from vector SDK.
 
     """
 
@@ -90,6 +90,6 @@ class HeadLiftJoy(object):
         rospy.spin()
 
 if __name__ == '__main__':
-    rospy.init_node('cozmo_head_lift_joy_node')
+    rospy.init_node('vector_head_lift_joy_node')
     hlj = HeadLiftJoy()
     hlj.run()
