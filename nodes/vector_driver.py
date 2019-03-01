@@ -494,7 +494,7 @@ class VectorRos(object):
         self._vector.set_wheel_motors((0, 0))
 
 
-def vector_app(vec_conn):
+def vector_app(vec):
     """
     The main function of the vector ROS driver.
 
@@ -514,6 +514,7 @@ if __name__ == '__main__':
     rospy.init_node('vector_driver')
     anki_vector.util.setup_basic_logging()
     try:
-        anki_vector.Robot.connect(vector_app)
+        with anki_vector.Robot() as robot:
+            vector_app(robot)
     except anki_vector.exceptions.VectorConnectionException as e:
         sys.exit('A connection error occurred: {}'.format(e))

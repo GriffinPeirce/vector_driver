@@ -26,9 +26,6 @@ Panels:
     Name: Time
     SyncMode: 0
     SyncSource: Image
-  - Class: rviz_plugin_tutorials/Teleop
-    Name: Teleop
-    Topic: cmd_vel
 Visualization Manager:
   Class: ""
   Displays:
