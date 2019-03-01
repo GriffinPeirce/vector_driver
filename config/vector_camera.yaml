@@ -1,7 +1,7 @@
 camera_matrix:
   data: !!python/tuple [289.9859761735648, 0.0, 163.67457016769845, 0.0, 289.7572903404558,
     114.68658050796701, 0.0, 0.0, 1.0]
-camera_name: cozmo_camera
+camera_name: vector_camera
 distortion_coefficients:
   data: !!python/tuple [0.020986440458443105, -0.01755666271998951, 0.0003281616739198983,
     0.003950101793499419, 0.0]
