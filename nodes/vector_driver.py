@@ -39,7 +39,7 @@ from anki_vector.util import radians
 # ROS
 import rospy
 from transformations import quaternion_from_euler
-from camera_info_manager import CameraInfoManager
+# from camera_info_manager import CameraInfoManager
 
 # ROS msgs
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus, KeyValue
@@ -130,7 +130,7 @@ class VectorRos(object):
         self._last_pose = self._vector.pose
         self._wheel_vel = (0, 0)
         self._optical_frame_orientation = quaternion_from_euler(-np.pi/2., .0, -np.pi/2.)
-        self._camera_info_manager = CameraInfoManager('vector_camera', namespace='/vector_camera')
+        # self._camera_info_manager = CameraInfoManager('vector_camera', namespace='/vector_camera')
 
         # tf
         self._tfb = TransformBroadcaster()
@@ -142,7 +142,7 @@ class VectorRos(object):
         self._head_frame = rospy.get_param('~head_frame', 'head_link')
         self._camera_frame = rospy.get_param('~camera_frame', 'camera_link')
         self._camera_optical_frame = rospy.get_param('~camera_optical_frame', 'vector_camera')
-        camera_info_url = rospy.get_param('~camera_info_url', '')
+        # camera_info_url = rospy.get_param('~camera_info_url', '')
 
         # pubs
         self._joint_state_pub = rospy.Publisher('joint_states', JointState, queue_size=1)
@@ -151,7 +151,7 @@ class VectorRos(object):
         self._battery_pub = rospy.Publisher('battery', BatteryState, queue_size=1)
         # Note: camera is published under global topic (preceding "/")
         self._image_pub = rospy.Publisher('/vector_camera/image', Image, queue_size=10)
-        self._camera_info_pub = rospy.Publisher('/vector_camera/camera_info', CameraInfo, queue_size=10)
+        # self._camera_info_pub = rospy.Publisher('/vector_camera/camera_info', CameraInfo, queue_size=10)
 
         # subs
         self._backpack_led_sub = rospy.Subscriber(
@@ -174,8 +174,8 @@ class VectorRos(object):
         self._diag_pub = rospy.Publisher('/diagnostics', DiagnosticArray, queue_size=1)
 
         # camera info manager
-        self._camera_info_manager.setURL(camera_info_url)
-        self._camera_info_manager.loadCameraInfo()
+        # self._camera_info_manager.setURL(camera_info_url)
+        # self._camera_info_manager.loadCameraInfo()
 
     def _publish_diagnostics(self):
         # alias
@@ -314,9 +314,9 @@ class VectorRos(object):
             ros_img.header.stamp = rospy.Time.now()
             # publish images and camera info
             self._image_pub.publish(ros_img)
-            camera_info = self._camera_info_manager.getCameraInfo()
-            camera_info.header = ros_img.header
-            self._camera_info_pub.publish(camera_info)
+            # camera_info = self._camera_info_manager.getCameraInfo()
+            # camera_info.header = ros_img.header
+            # self._camera_info_pub.publish(camera_info)
 
     def _publish_joint_state(self):
         """
