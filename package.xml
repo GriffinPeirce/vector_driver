@@ -1,19 +1,17 @@
-<?xml version="1.0"?>
+<?xml version="0.1"?>
 <package>
-  <name>cozmo_driver</name>
-  <version>0.2.0</version>
-  <description>The cozmo_driver package</description>
+  <name>vector_driver</name>
+  <version>0.1</version>
+  <description>The vector_driver package</description>
 
-  <maintainer email="t.ogura@gmail.com">Takashi Ogura</maintainer>
-  <maintainer email="semael23@gmail.com">Peter Rudolph</maintainer>
+  <maintainer email="griff.peirce@gmail.com">Griffin Peirce</maintainer>
 
   <license>Apache License 2.0</license>
 
   <!-- Url tags are optional, but mutiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
-  <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/cozmo_driver</url> -->
 
+  <author email="griff.peirce@gmail.com">Griffin Peirce</author>
   <author email="t.ogura@gmail.com">Takashi Ogura</author>
   <author email="semael23@gmail.com">Peter Rudolph</author>
 
