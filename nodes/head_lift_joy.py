@@ -4,6 +4,7 @@
 This script implements a ROS node, which is used to
 control vectors's head angle and lift height via joy-pad.
 
+Copyright {2017} {Peter Rudolph}
 Copyright {2019} {Griffin Peirce}
 
 Licensed under the Apache License, Version 2.0 (the "License");

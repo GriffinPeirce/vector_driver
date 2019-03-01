@@ -18,6 +18,7 @@ t - lift up
 t - lift normal position
 t - lift down
 
+Copyright {2017} {Peter Rudolph}
 Copyright {2019} {Griffin Peirce}
 
 Licensed under the Apache License, Version 2.0 (the "License");

@@ -1,9 +1,9 @@
 #!/usr/bin/python3.5
 # -*- encoding: utf-8 -*-
 """
-This file implements an ANKI Cozmo ROS driver.
+This file implements an ANKI Vector ROS driver.
 
-It wraps up several functionality of the Cozmo SDK including
+It wraps up several functionality of the Vector SDK including
 camera and motors. As some main ROS parts are not python3.5
 compatible, the famous "transformations.py" is shipped next
 to this node. Also the TransformBroadcaster is taken from
@@ -11,6 +11,7 @@ ROS tf ones.
 
 Copyright {2016} {Takashi Ogura}
 Copyright {2017} {Peter Rudolph}
+Copyright {2019} {Griffin Peirce}
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
