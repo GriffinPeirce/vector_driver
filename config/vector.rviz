@@ -4,7 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Cozmo1
+        - /Vector1
       Splitter Ratio: 0.5
     Tree Height: 341
   - Class: rviz/Selection
@@ -61,7 +61,7 @@ Visualization Manager:
           Value: true
         camera_link:
           Value: true
-        cozmo_camera:
+        vector_camera:
           Value: true
         head_link:
           Value: true
@@ -78,7 +78,7 @@ Visualization Manager:
             base_link:
               head_link:
                 camera_link:
-                  cozmo_camera:
+                  vector_camera:
                     {}
       Update Interval: 0
       Value: true
@@ -103,12 +103,12 @@ Visualization Manager:
           Class: rviz_imu_plugin/Imu
           Enabled: true
           Name: Imu
-          Topic: /cozmo/imu
+          Topic: /vector/imu
           Unreliable: false
           Value: true
         - Class: rviz/Image
           Enabled: false
-          Image Topic: /cozmo_camera/image
+          Image Topic: /vector_camera/image
           Max Value: 1
           Median window: 5
           Min Value: 0
@@ -121,7 +121,7 @@ Visualization Manager:
         - Class: rviz/Camera
           Enabled: true
           Image Rendering: background and overlay
-          Image Topic: /cozmo_camera/image
+          Image Topic: /vector_camera/image
           Name: Camera
           Overlay Alpha: 0.5
           Queue Size: 2
@@ -129,7 +129,7 @@ Visualization Manager:
           Unreliable: false
           Value: true
           Visibility:
-            Cozmo:
+            Vector:
               Image: true
               Imu: true
               Value: true
@@ -138,7 +138,7 @@ Visualization Manager:
             Value: true
           Zoom Factor: 1
       Enabled: true
-      Name: Cozmo
+      Name: Vector
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
