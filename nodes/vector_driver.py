@@ -208,9 +208,10 @@ class VectorRos(object):
         :param  cmd:    The message containing angle in degrees. [-22.0 - 45.0]
         
         """
-        action = self._vector.behavior.set_head_angle(radians(cmd.data * np.pi / 180.), duration=0.1,
-                                            in_parallel=True)
-        action.wait_for_completed()
+        # action = self._vector.behavior.set_head_angle(radians(cmd.data * np.pi / 180.), duration=0.1,
+        #                                     in_parallel=True)
+        action = self._vector.behavior.set_head_angle(radians(cmd.data * np.pi / 180.), duration=0.1)
+        # action.wait_for_completed()
 
     def _move_lift(self, cmd):
         """
@@ -221,9 +222,11 @@ class VectorRos(object):
                         scales it to the according height.
 
         """
+        # action = self._vector.behavior.set_lift_height(height=cmd.data,
+        #                                      duration=0.2, in_parallel=True)
         action = self._vector.behavior.set_lift_height(height=cmd.data,
-                                             duration=0.2, in_parallel=True)
-        action.wait_for_completed()
+                                     duration=0.2)
+        # action.wait_for_completed()
 
     def _set_backpack_led(self, msg):
         """
@@ -486,11 +489,11 @@ class VectorRos(object):
             # send message repeatedly to avoid idle mode.
             # This might cause low battery soon
             # TODO improve this!
-            self._vector.set_wheel_motors(*self._wheel_vel)
+            self._vector.motors.set_wheel_motors(*self._wheel_vel)
             # sleep
             r.sleep()
         # stop movement
-        self._vector.set_wheel_motors((0, 0))
+        self._vector.motors.set_wheel_motors((0, 0))
 
 
 def vector_app(vec):
@@ -513,7 +516,7 @@ if __name__ == '__main__':
     rospy.init_node('vector_driver')
     anki_vector.util.setup_basic_logging()
     try:
-        with anki_vector.Robot() as robot:
+        with anki_vector.Robot(enable_camera_feed=True) as robot:
             vector_app(robot)
     except anki_vector.exceptions.VectorConnectionException as e:
         sys.exit('A connection error occurred: {}'.format(e))
