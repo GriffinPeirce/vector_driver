@@ -1,5 +1,5 @@
 [general]
-topic_root=cozmo/ratslam
+topic_root=vector/ratslam
 
 [ratslam]
 image_crop_x_min=0
@@ -27,5 +27,5 @@ vt_window_width=640
 vt_window_height=480
 exp_map_size=500
 posecells_size=250
-media_path=/home/peter/cozmo/catkin_ws/src/ratslam_ros/src/media/
+media_path=/home/griffin/catkin_ws/src/ratslam_ros/src/media/
 image_file=irat_sm.tga
