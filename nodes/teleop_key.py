@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 """
-This file implements a ROS keyboard teleoperation node for the ANKI Cozmo robot.
+This file implements a ROS keyboard teleoperation node for the ANKI Vector robot.
 
 Keyboard mapping:
 
@@ -18,7 +18,7 @@ t - lift up
 t - lift normal position
 t - lift down
 
-Copyright {2017} {Peter Rudolph}
+Copyright {2019} {Griffin Peirce}
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -43,8 +43,8 @@ from select import select
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Float64
 
-MIN_HEAD_ANGLE = -25.0
-MAX_HEAD_ANGLE = 44.5
+MIN_HEAD_ANGLE = -20.0
+MAX_HEAD_ANGLE = 46.0
 STD_HEAD_ANGLE = 20.0
 SUM_HEAD_ANGLE = MAX_HEAD_ANGLE - MIN_HEAD_ANGLE
 
@@ -54,9 +54,9 @@ STD_LIFT_HEIGHT = 32.0
 SUM_LIFT_HEIGHT = MAX_LIFT_HEIGHT - MIN_LIFT_HEIGHT
 
 
-class CozmoTeleop(object):
+class VectorTeleop(object):
     """
-    Class providing keyboard teleoperation functionality for Cozmo robot.
+    Class providing keyboard teleoperation functionality for Vector robot.
 
     """
 
@@ -64,7 +64,7 @@ class CozmoTeleop(object):
 
     def __init__(self):
         # setup
-        CozmoTeleop.settings = termios.tcgetattr(sys.stdin)
+        VectorTeleop.settings = termios.tcgetattr(sys.stdin)
         atexit.register(self.reset_terminal)
 
         # vars
@@ -107,7 +107,7 @@ class CozmoTeleop(object):
         Reset the terminal to state before class initialization.
 
         """
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, CozmoTeleop.settings)
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, VectorTeleop.settings)
 
     def run(self):
         """
@@ -215,8 +215,8 @@ class CozmoTeleop(object):
             r.sleep()
 
 # start ROS node
-rospy.init_node('cozmo_teleop_key')
+rospy.init_node('vector_teleop_key')
 # initialize keyboard teleoperation
-cozmo_teleop = CozmoTeleop()
+vector_teleop = VectorTeleop()
 # loop
-cozmo_teleop.run()
+vector_teleop.run()
