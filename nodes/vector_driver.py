@@ -1,4 +1,4 @@
-#!/usr/bin/python3.5
+#!/usr/bin/python3.6
 # -*- encoding: utf-8 -*-
 """
 This file implements an ANKI Vector ROS driver.
@@ -30,10 +30,11 @@ limitations under the License.
 import sys
 import numpy as np
 from copy import deepcopy
+from PIL import Image
 
-# cozmo SDK
-import cozmo
-from cozmo.util import radians
+# vector SDK
+import anki_vector
+from anki_vector.util import radians
 
 # ROS
 import rospy
@@ -106,30 +107,30 @@ class TransformBroadcaster(object):
         self.pub_tf.publish(tfm)
 
 
-class CozmoRos(object):
+class VectorRos(object):
     """
-    The Cozmo ROS driver object.
+    The Vector ROS driver object.
 
     """
     
-    def __init__(self, coz):
+    def __init__(self, vec):
         """
 
-        :type   coz:    cozmo.Robot
-        :param  coz:    The cozmo SDK robot handle (object).
+        :type   vec:    anki_vector.Robot
+        :param  vec:    The vector SDK robot handle (object).
         
         """
 
         # vars
-        self._cozmo = coz
+        self._vector = vec
         self._lin_vel = .0
         self._ang_vel = .0
         self._cmd_lin_vel = .0
         self._cmd_ang_vel = .0
-        self._last_pose = self._cozmo.pose
+        self._last_pose = self._vector.pose
         self._wheel_vel = (0, 0)
         self._optical_frame_orientation = quaternion_from_euler(-np.pi/2., .0, -np.pi/2.)
-        self._camera_info_manager = CameraInfoManager('cozmo_camera', namespace='/cozmo_camera')
+        self._camera_info_manager = CameraInfoManager('vector_camera', namespace='/vector_camera')
 
         # tf
         self._tfb = TransformBroadcaster()
@@ -140,7 +141,7 @@ class CozmoRos(object):
         self._base_frame = rospy.get_param('~base_frame', 'base_link')
         self._head_frame = rospy.get_param('~head_frame', 'head_link')
         self._camera_frame = rospy.get_param('~camera_frame', 'camera_link')
-        self._camera_optical_frame = rospy.get_param('~camera_optical_frame', 'cozmo_camera')
+        self._camera_optical_frame = rospy.get_param('~camera_optical_frame', 'vector_camera')
         camera_info_url = rospy.get_param('~camera_info_url', '')
 
         # pubs
@@ -149,8 +150,8 @@ class CozmoRos(object):
         self._imu_pub = rospy.Publisher('imu', Imu, queue_size=1)
         self._battery_pub = rospy.Publisher('battery', BatteryState, queue_size=1)
         # Note: camera is published under global topic (preceding "/")
-        self._image_pub = rospy.Publisher('/cozmo_camera/image', Image, queue_size=10)
-        self._camera_info_pub = rospy.Publisher('/cozmo_camera/camera_info', CameraInfo, queue_size=10)
+        self._image_pub = rospy.Publisher('/vector_camera/image', Image, queue_size=10)
+        self._camera_info_pub = rospy.Publisher('/vector_camera/camera_info', CameraInfo, queue_size=10)
 
         # subs
         self._backpack_led_sub = rospy.Subscriber(
@@ -164,8 +165,8 @@ class CozmoRos(object):
         self._diag_array = DiagnosticArray()
         self._diag_array.header.frame_id = self._base_frame
         diag_status = DiagnosticStatus()
-        diag_status.hardware_id = 'Cozmo Robot'
-        diag_status.name = 'Cozmo Status'
+        diag_status.hardware_id = 'Vector Robot'
+        diag_status.name = 'Vector Status'
         diag_status.values.append(KeyValue(key='Battery Voltage', value=''))
         diag_status.values.append(KeyValue(key='Head Angle', value=''))
         diag_status.values.append(KeyValue(key='Lift Height', value=''))
@@ -181,19 +182,19 @@ class CozmoRos(object):
         diag_status = self._diag_array.status[0]
 
         # fill diagnostics array
-        battery_voltage = self._cozmo.battery_voltage
+        battery_voltage = self._vector.get_battery_state().battery_volts
         diag_status.values[0].value = '{:.2f} V'.format(battery_voltage)
-        diag_status.values[1].value = '{:.2f} deg'.format(self._cozmo.head_angle.degrees)
-        diag_status.values[2].value = '{:.2f} mm'.format(self._cozmo.lift_height.distance_mm)
-        if battery_voltage > 3.5:
+        diag_status.values[1].value = '{:.2f} rad'.format(self._vector.head_angle_rad)
+        diag_status.values[2].value = '{:.2f} mm'.format(self._vector.lift_height_mm)
+        if battery_voltage > 3.8:
             diag_status.level = DiagnosticStatus.OK
             diag_status.message = 'Everything OK!'
-        elif battery_voltage > 3.4:
+        elif battery_voltage > 3.6:
             diag_status.level = DiagnosticStatus.WARN
             diag_status.message = 'Battery low! Go charge soon!'
         else:
             diag_status.level = DiagnosticStatus.ERROR
-            diag_status.message = 'Battery very low! Cozmo will power off soon!'
+            diag_status.message = 'Battery very low! Vector will power off soon!'
 
         # update message stamp and publish
         self._diag_array.header.stamp = rospy.Time.now()
@@ -204,10 +205,10 @@ class CozmoRos(object):
         Move head to given angle.
         
         :type   cmd:    Float64
-        :param  cmd:    The message containing angle in degrees. [-25 - 44.5]
+        :param  cmd:    The message containing angle in degrees. [-22.0 - 45.0]
         
         """
-        action = self._cozmo.set_head_angle(radians(cmd.data * np.pi / 180.), duration=0.1,
+        action = self._vector.behavior.set_head_angle(radians(cmd.data * np.pi / 180.), duration=0.1,
                                             in_parallel=True)
         action.wait_for_completed()
 
@@ -220,7 +221,7 @@ class CozmoRos(object):
                         scales it to the according height.
 
         """
-        action = self._cozmo.set_lift_height(height=cmd.data,
+        action = self._vector.behavior.set_lift_height(height=cmd.data,
                                              duration=0.2, in_parallel=True)
         action.wait_for_completed()
 
@@ -233,11 +234,13 @@ class CozmoRos(object):
 
         """
         # setup color as integer values
-        color = [int(x * 255) for x in [msg.r, msg.g, msg.b, msg.a]]
+        # color = [int(x * 255) for x in [msg.r, msg.g, msg.b, msg.a]]
         # create lights object with duration
-        light = cozmo.lights.Light(cozmo.lights.Color(rgba=color), on_period_ms=1000)
+        # light = cozmo.lights.Light(cozmo.lights.Color(rgba=color), on_period_ms=1000)
         # set lights
-        self._cozmo.set_all_backpack_lights(light)
+        # self._cozmo.set_all_backpack_lights(light)
+        # TODO Griffin: Add backpack colour support once color instance is added to the anki_vector.robot class
+        pass
 
     def _twist_callback(self, cmd):
         """
@@ -251,7 +254,7 @@ class CozmoRos(object):
 
         """
         # compute differential wheel speed
-        axle_length = 0.07  # 7cm
+        axle_length = 0.05  # 5cm
         self._cmd_lin_vel = cmd.linear.x
         self._cmd_ang_vel = cmd.angular.z
         rv = self._cmd_lin_vel + (self._cmd_ang_vel * axle_length * 0.5)
@@ -266,20 +269,21 @@ class CozmoRos(object):
         :param  msg:    The text message to say.
 
         """
-        self._cozmo.say_text(msg.data).wait_for_completed()
+        self._vector.say_text(msg.data).wait_for_completed()
 
     def _publish_objects(self):
         """
         Publish detected object as transforms between odom_frame and object_frame.
 
         """
-
-        for obj in self._cozmo.world.visible_objects:
+        # TODO Griffin: Update to visible objects only based on api changes
+        for obj in self._vector.world.all_objects:
             now = rospy.Time.now()
             x = obj.pose.position.x * 0.001
             y = obj.pose.position.y * 0.001
             z = obj.pose.position.z * 0.001
             q = (obj.pose.rotation.q1, obj.pose.rotation.q2, obj.pose.rotation.q3, obj.pose.rotation.q0)
+            # TODO Griffin: Update to filter all object types
             self._tfb.send_transform(
                 (x, y, z), q, now, 'cube_' + str(obj.object_id), self._odom_frame
             )
@@ -293,20 +297,21 @@ class CozmoRos(object):
         if self._image_pub.get_num_connections() == 0:
             return
 
-        # get latest image from cozmo's camera
-        camera_image = self._cozmo.world.latest_image
+        # get latest image from vectors's camera
+        camera_image = self._vector.camera.latest_image
         if camera_image is not None:
             # convert image to gray scale as it is gray although
-            img = camera_image.raw_image.convert('L')
+            img = camera_image.convert('L')
             ros_img = Image()
             ros_img.encoding = 'mono8'
             ros_img.width = img.size[0]
             ros_img.height = img.size[1]
             ros_img.step = ros_img.width
             ros_img.data = img.tobytes()
-            ros_img.header.frame_id = 'cozmo_camera'
-            cozmo_time = camera_image.image_recv_time
-            ros_img.header.stamp = rospy.Time.from_sec(cozmo_time)
+            ros_img.header.frame_id = 'vector_camera'
+            # vector_time = camera_image.image_recv_time
+            # ros_img.header.stamp = rospy.Time.from_sec(vector_time)
+            ros_img.header.stamp = rospy.Time.now()
             # publish images and camera info
             self._image_pub.publish(ros_img)
             camera_info = self._camera_info_manager.getCameraInfo()
@@ -324,10 +329,10 @@ class CozmoRos(object):
 
         js = JointState()
         js.header.stamp = rospy.Time.now()
-        js.header.frame_id = 'cozmo'
+        js.header.frame_id = 'vector'
         js.name = ['head', 'lift']
-        js.position = [self._cozmo.head_angle.radians,
-                       self._cozmo.lift_height.distance_mm * 0.001]
+        js.position = [self._vector.head_angle_rad,
+                       self._vector.lift_height_mm * 0.001]
         js.velocity = [0.0, 0.0]
         js.effort = [0.0, 0.0]
         self._joint_state_pub.publish(js)
@@ -344,16 +349,16 @@ class CozmoRos(object):
         imu = Imu()
         imu.header.stamp = rospy.Time.now()
         imu.header.frame_id = self._base_frame
-        imu.orientation.w = self._cozmo.pose.rotation.q0
-        imu.orientation.x = self._cozmo.pose.rotation.q1
-        imu.orientation.y = self._cozmo.pose.rotation.q2
-        imu.orientation.z = self._cozmo.pose.rotation.q3
-        imu.angular_velocity.x = self._cozmo.gyro.x
-        imu.angular_velocity.y = self._cozmo.gyro.y
-        imu.angular_velocity.z = self._cozmo.gyro.z
-        imu.linear_acceleration.x = self._cozmo.accelerometer.x * 0.001
-        imu.linear_acceleration.y = self._cozmo.accelerometer.y * 0.001
-        imu.linear_acceleration.z = self._cozmo.accelerometer.z * 0.001
+        imu.orientation.w = self._vector.pose.rotation.q0
+        imu.orientation.x = self._vector.pose.rotation.q1
+        imu.orientation.y = self._vector.pose.rotation.q2
+        imu.orientation.z = self._vector.pose.rotation.q3
+        imu.angular_velocity.x = self._vector.gyro.x
+        imu.angular_velocity.y = self._vector.gyro.y
+        imu.angular_velocity.z = self._vector.gyro.z
+        imu.linear_acceleration.x = self._vector.accel.x * 0.001
+        imu.linear_acceleration.y = self._vector.accel.y * 0.001
+        imu.linear_acceleration.z = self._vector.accel.z * 0.001
         self._imu_pub.publish(imu)
 
     def _publish_battery(self):
@@ -367,9 +372,9 @@ class CozmoRos(object):
 
         battery = BatteryState()
         battery.header.stamp = rospy.Time.now()
-        battery.voltage = self._cozmo.battery_voltage
+        battery.voltage = self._vector.get_battery_state().battery_volts
         battery.present = True
-        if self._cozmo.is_on_charger:  # is_charging always return False
+        if self._vector.get_battery_state().is_on_charger:
             battery.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_CHARGING
         else:
             battery.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_NOT_CHARGING
@@ -389,10 +394,10 @@ class CozmoRos(object):
         odom.header.frame_id = self._odom_frame
         odom.header.stamp = now
         odom.child_frame_id = self._footprint_frame
-        odom.pose.pose.position.x = self._cozmo.pose.position.x * 0.001
-        odom.pose.pose.position.y = self._cozmo.pose.position.y * 0.001
-        odom.pose.pose.position.z = self._cozmo.pose.position.z * 0.001
-        q = quaternion_from_euler(.0, .0, self._cozmo.pose_angle.radians)
+        odom.pose.pose.position.x = self._vector.pose.position.x * 0.001
+        odom.pose.pose.position.y = self._vector.pose.position.y * 0.001
+        odom.pose.pose.position.z = self._vector.pose.position.z * 0.001
+        q = quaternion_from_euler(.0, .0, self._vector.pose_ange_rad)
         odom.pose.pose.orientation.x = q[0]
         odom.pose.pose.orientation.y = q[1]
         odom.pose.pose.orientation.z = q[2]
@@ -404,6 +409,8 @@ class CozmoRos(object):
         self._odom_pub.publish(odom)
 
     def _publish_tf(self, update_rate):
+
+        # TODO Griffin: Update transforms with Vector measurements. Currently assumes old cozmo specs
         """
         Broadcast current transformations and update
         measured velocities for odometry twist.
@@ -418,14 +425,14 @@ class CozmoRos(object):
 
         """
         now = rospy.Time.now()
-        x = self._cozmo.pose.position.x * 0.001
-        y = self._cozmo.pose.position.y * 0.001
-        z = self._cozmo.pose.position.z * 0.001
+        x = self._vector.pose.position.x * 0.001
+        y = self._vector.pose.position.y * 0.001
+        z = self._vector.pose.position.z * 0.001
 
         # compute current linear and angular velocity from pose change
         # Note: Sign for linear velocity is taken from commanded velocities!
         # Note: The angular velocity can also be taken from gyroscopes!
-        delta_pose = self._last_pose - self._cozmo.pose
+        delta_pose = self._last_pose - self._vector.pose
         dist = np.sqrt(delta_pose.position.x**2
                        + delta_pose.position.y**2
                        + delta_pose.position.z**2) / 1000.0
@@ -433,17 +440,17 @@ class CozmoRos(object):
         self._ang_vel = -delta_pose.rotation.angle_z.radians * update_rate
 
         # publish odom_frame -> footprint_frame
-        q = quaternion_from_euler(.0, .0, self._cozmo.pose_angle.radians)
+        q = quaternion_from_euler(.0, .0, self._vector.pose_angle_rad)
         self._tfb.send_transform(
             (x, y, 0.0), q, now, self._footprint_frame, self._odom_frame)
 
         # publish footprint_frame -> base_frame
-        q = quaternion_from_euler(.0, -self._cozmo.pose_pitch.radians, .0)
+        q = quaternion_from_euler(.0, -self._vector.pose_pitch_rad, .0)
         self._tfb.send_transform(
             (0.0, 0.0, 0.02), q, now, self._base_frame, self._footprint_frame)
 
         # publish base_frame -> head_frame
-        q = quaternion_from_euler(.0, -self._cozmo.head_angle.radians, .0)
+        q = quaternion_from_euler(.0, -self._vector.head_angle_rad, .0)
         self._tfb.send_transform(
             (0.02, 0.0, 0.05), q, now, self._head_frame, self._base_frame)
 
@@ -457,7 +464,7 @@ class CozmoRos(object):
             (0.0, 0.0, 0.0), q, now, self._camera_optical_frame, self._camera_frame)
 
         # store last pose
-        self._last_pose = deepcopy(self._cozmo.pose)
+        self._last_pose = deepcopy(self._vector.pose)
 
     def run(self, update_rate=10):
         """
@@ -480,34 +487,33 @@ class CozmoRos(object):
             # send message repeatedly to avoid idle mode.
             # This might cause low battery soon
             # TODO improve this!
-            self._cozmo.drive_wheels(*self._wheel_vel)
+            self._vector.set_wheel_motors(*self._wheel_vel)
             # sleep
             r.sleep()
-        # stop events on cozmo
-        self._cozmo.stop_all_motors()
+        # stop movement
+        self._vector.set_wheel_motors((0, 0))
 
 
-def cozmo_app(coz_conn):
+def vector_app(vec_conn):
     """
-    The main function of the cozmo ROS driver.
+    The main function of the vector ROS driver.
 
-    This function is called by cozmo SDK!
-    Use "cozmo.connect(cozmo_app)" to run.
+    This function is called by vector SDK!
+    Use "vector.connect(vector_app)" to run.
 
-    :type   coz_conn:   cozmo.Connection
+    :type   vec_conn:   vector.Connection
     :param  coz_conn:   The connection handle to cozmo robot.
 
     """
-    coz = coz_conn.wait_for_robot()
-    coz.camera.image_stream_enabled = True
-    coz_ros = CozmoRos(coz)
-    coz_ros.run()
+    # vec.camera.image_stream_enabled = True
+    vec_ros = VectorRos(vec)
+    vec_ros.run()
 
 
 if __name__ == '__main__':
-    rospy.init_node('cozmo_driver')
-    cozmo.setup_basic_logging()
+    rospy.init_node('vector_driver')
+    anki_vector.util.setup_basic_logging()
     try:
-        cozmo.connect(cozmo_app)
-    except cozmo.ConnectionError as e:
+        anki_vector.Robot.connect(vector_app)
+    except anki_vector.exceptions.VectorConnectionException as e:
         sys.exit('A connection error occurred: {}'.format(e))
