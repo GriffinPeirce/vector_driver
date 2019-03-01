@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(cozmo_driver)
+project(vector_driver)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -102,7 +102,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES cozmo_driver
+#  LIBRARIES vector_driver
 #  CATKIN_DEPENDS geometry_msgs rospy std_msgs
 #  DEPENDS system_lib
 )
@@ -119,24 +119,24 @@ include_directories(
 )
 
 ## Declare a C++ library
-# add_library(cozmo_driver
-#   src/${PROJECT_NAME}/cozmo_driver.cpp
+# add_library(vector_driver
+#   src/${PROJECT_NAME}/vector_driver.cpp
 # )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(cozmo_driver ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(vector_driver ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-# add_executable(cozmo_driver_node src/cozmo_driver_node.cpp)
+# add_executable(vector_driver_node src/vector_driver_node.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(cozmo_driver_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(vector_driver_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(cozmo_driver_node
+# target_link_libraries(vector_driver_node
 #   ${catkin_LIBRARIES}
 # )
 
@@ -155,7 +155,7 @@ include_directories(
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS cozmo_driver cozmo_driver_node
+# install(TARGETS vector_driver vector_driver_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -180,7 +180,7 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_cozmo_driver.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_vector_driver.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
