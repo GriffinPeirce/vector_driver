@@ -400,7 +400,7 @@ class VectorRos(object):
         odom.pose.pose.position.x = self._vector.pose.position.x * 0.001
         odom.pose.pose.position.y = self._vector.pose.position.y * 0.001
         odom.pose.pose.position.z = self._vector.pose.position.z * 0.001
-        q = quaternion_from_euler(.0, .0, self._vector.pose_ange_rad)
+        q = quaternion_from_euler(.0, .0, self._vector.pose_angle_rad)
         odom.pose.pose.orientation.x = q[0]
         odom.pose.pose.orientation.y = q[1]
         odom.pose.pose.orientation.z = q[2]
