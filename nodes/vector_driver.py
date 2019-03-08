@@ -53,6 +53,7 @@ from std_msgs.msg import (
     String,
     Float64,
     ColorRGBA,
+    Int16,
 )
 from sensor_msgs.msg import (
     Image,
@@ -149,13 +150,14 @@ class VectorRos(object):
         self._odom_pub = rospy.Publisher('odom', Odometry, queue_size=1)
         self._imu_pub = rospy.Publisher('imu', Imu, queue_size=1)
         self._battery_pub = rospy.Publisher('battery', BatteryState, queue_size=1)
+        self._touch_pub = rospy.Publisher('touch', Int16, queue_size=1)
         # Note: camera is published under global topic (preceding "/")
         self._image_pub = rospy.Publisher('/vector_camera/image', Image, queue_size=10)
         # self._camera_info_pub = rospy.Publisher('/vector_camera/camera_info', CameraInfo, queue_size=10)
 
         # subs
-        self._backpack_led_sub = rospy.Subscriber(
-            'backpack_led', ColorRGBA, self._set_backpack_led, queue_size=1)
+        # self._backpack_led_sub = rospy.Subscriber(
+        #     'backpack_led', ColorRGBA, self._set_backpack_led, queue_size=1)
         self._twist_sub = rospy.Subscriber('cmd_vel', Twist, self._twist_callback, queue_size=1)
         self._say_sub = rospy.Subscriber('say', String, self._say_callback, queue_size=1)
         self._head_sub = rospy.Subscriber('head_angle', Float64, self._move_head, queue_size=1)
@@ -377,11 +379,25 @@ class VectorRos(object):
         battery.header.stamp = rospy.Time.now()
         battery.voltage = self._vector.get_battery_state().battery_volts
         battery.present = True
-        if self._vector.get_battery_state().is_on_charger:
+        if self._vector.get_battery_state().is_on_charger_platform:
             battery.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_CHARGING
         else:
             battery.power_supply_status = BatteryState.POWER_SUPPLY_STATUS_NOT_CHARGING
         self._battery_pub.publish(battery)
+
+    def _publish_touch(self):
+        """
+        Publish raw backpack touch value
+
+        """
+
+        if self._touch_pub.get_num_connections() == 0:
+            return
+
+        touch = Int16()
+        touch.data = self._vector.touch.last_sensor_reading.raw_touch_value
+
+        self._touch_pub.publish(touch)
 
     def _publish_odometry(self):
         """
@@ -484,6 +500,7 @@ class VectorRos(object):
             self._publish_joint_state()
             self._publish_imu()
             self._publish_battery()
+            self._publish_touch()
             self._publish_odometry()
             self._publish_diagnostics()
             # send message repeatedly to avoid idle mode.
