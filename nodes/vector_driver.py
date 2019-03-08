@@ -59,6 +59,7 @@ from sensor_msgs.msg import (
     Image,
     CameraInfo,
     BatteryState,
+    Range,
     Imu,
     JointState,
 )
@@ -151,6 +152,7 @@ class VectorRos(object):
         self._imu_pub = rospy.Publisher('imu', Imu, queue_size=1)
         self._battery_pub = rospy.Publisher('battery', BatteryState, queue_size=1)
         self._touch_pub = rospy.Publisher('touch', Int16, queue_size=1)
+        self._laser_pub = rospy.Publisher('laser', Range, queue_size=50)
         # Note: camera is published under global topic (preceding "/")
         self._image_pub = rospy.Publisher('/vector_camera/image', Image, queue_size=10)
         # self._camera_info_pub = rospy.Publisher('/vector_camera/camera_info', CameraInfo, queue_size=10)
@@ -399,6 +401,37 @@ class VectorRos(object):
 
         self._touch_pub.publish(touch)
 
+    def _publish_laser(self):
+        """
+        TODO Griffin: Add a transform from base_link to base_laser
+        TODO: Modify the is valid condition if significant slope traversal object detection required.
+        Publish filtered laser distance as Range message. Will publish NaN distance if
+        scanner is blocked or robot in orientation not suited to horizontal navigation.
+
+        See API for sensor range, fov etc
+        https://developer.anki.com/vector/docs/generated/anki_vector.proximity.html
+
+        """
+
+        if self._laser_pub.get_num_connections() == 0:
+            return
+
+        now = rospy.Time.now()
+        laser = Range()
+        laser.header.frame_id = self._base_frame
+        laser.header.stamp = now
+        laser.radiation_type = 1 # IR laser
+        laser.field_of_view = 0.436332 # 25 deg
+        laser.min_range = 0.03 # 30mm
+        laser.max_range = 1.5 # 300mm
+        laser_reading = self._vector.proximity.last_sensor_reading
+        if(laser_reading.is_valid):
+            laser.range = self._vector.proximity.last_sensor_reading.distance.distance_mm/1000
+        else:
+            laser.range = float('nan')
+        self._laser_pub.publish(laser)
+
+
     def _publish_odometry(self):
         """
         Publish current pose as Odometry message.
@@ -501,6 +534,7 @@ class VectorRos(object):
             self._publish_imu()
             self._publish_battery()
             self._publish_touch()
+            self._publish_laser()
             self._publish_odometry()
             self._publish_diagnostics()
             # send message repeatedly to avoid idle mode.
