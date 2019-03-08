@@ -5,8 +5,8 @@ teleop_node:
   axis_angular: 0
   scale_angular: 1.2
   scale_angular_turbo: 2.4
-  enable_button: 6
-  enable_turbo_button: 7
+  enable_button: 4
+  enable_turbo_button: 5
 joy_node:
   deadzone: 0.1
   autorepeat_rate: 20
