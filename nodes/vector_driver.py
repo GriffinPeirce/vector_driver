@@ -307,10 +307,12 @@ class VectorRos(object):
         # get latest image from vectors's camera
         camera_image = self._vector.camera.latest_image
         if camera_image is not None:
-            # convert image to gray scale as it is gray although
-            img = camera_image.convert('L')
+            # convert image to gray scale
+            img = camera_image.convert('RGB')
+            # 640,360 image size?
+            # img = camera_image
             ros_img = Image()
-            ros_img.encoding = 'mono8'
+            ros_img.encoding = 'rgb8'
             ros_img.width = img.size[0]
             ros_img.height = img.size[1]
             ros_img.step = ros_img.width
